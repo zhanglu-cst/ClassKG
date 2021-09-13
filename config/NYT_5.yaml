@@ -1,0 +1,28 @@
+data_dir_name: "NYT5"
+
+model:
+  number_classes: 5
+
+keywords_update:
+  extract_keywords_per_class: [ 3000 ]
+  keywords_set_keep_max_num: [ 3000 ]
+  IDF_n: 4
+  overwrite_conflict: False
+  seed_word_score: 20
+
+
+classifier:
+  n_epochs: 100
+  batch_size: 4
+  stop_itr: [ 200,1000 ]
+  lr: 2e-6
+  eval_interval: 100
+  type: "long"
+
+trainer_Graph:
+  epoch: [ 0, 20 ]
+  batch_size: 256
+
+
+file_path:
+  save_dir: "NYT5"

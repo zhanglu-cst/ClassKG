@@ -1,0 +1,33 @@
+data_dir_name: "amazon"
+
+model:
+  number_classes: 2
+
+
+SSL:
+  enable: True
+  number_itr: 100000
+
+keywords_update:
+  extract_keywords_per_class: [ 3000 ]
+  keywords_set_keep_max_num: [ 3000 ]
+  IDF_n: 4
+  overwrite_conflict: True
+
+
+classifier:
+  n_epochs: 100
+  batch_size: 8
+  stop_itr: [ 1000 ]
+  lr: 2e-6
+  eval_interval: 100
+  type: "short"
+
+
+trainer_Graph:
+  epoch: [ 4,10 ]
+  batch_size: 256
+
+
+file_path:
+  save_dir: "amazon"

@@ -1,0 +1,30 @@
+data_dir_name: "20NF"
+
+model:
+  number_classes: 20
+
+
+
+keywords_update:
+  extract_keywords_per_class: [ 100,150 ]
+  keywords_set_keep_max_num: [ 100,150 ]
+  IDF_n: 4
+  overwrite_conflict: False
+
+
+classifier:
+  n_epochs: 10
+  batch_size: 4
+  stop_itr: [ 1000 ,4000 ]
+  lr: 2e-6
+  eval_interval: 100
+  type: "long"
+
+
+trainer_Graph:
+  epoch: [ 4,20 ]
+  batch_size: 256
+
+
+file_path:
+  save_dir: "20NF_final"

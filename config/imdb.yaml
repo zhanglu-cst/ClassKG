@@ -1,0 +1,32 @@
+data_dir_name: "imdb"
+
+model:
+  number_classes: 2
+
+SSL:
+  enable: True
+  number_itr: 100000
+
+keywords_update:
+  extract_keywords_per_class: [ 5000 ]
+  keywords_set_keep_max_num: [ 5000 ]
+  IDF_n: 4
+  overwrite_conflict: False
+  seed_word_score: 10000
+
+
+classifier:
+  n_epochs: 100
+  batch_size: 5
+  stop_itr: [ 800 ]
+  lr: 2e-6
+  eval_interval: 50
+  type: "short"
+
+trainer_Graph:
+  epoch: [ 4,10 ]
+  batch_size: 256
+
+
+file_path:
+  save_dir: "imdb"

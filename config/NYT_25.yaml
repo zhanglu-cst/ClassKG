@@ -1,0 +1,27 @@
+data_dir_name: "NYT25"
+
+model:
+  number_classes: 26
+
+keywords_update:
+  extract_keywords_per_class: [ 0.1 ]
+  keywords_set_keep_max_num: [ 300 ]
+  IDF_n: 4
+  overwrite_conflict: False
+
+
+classifier:
+  n_epochs: 100
+  batch_size: 4
+  stop_itr: [ 1000 ]
+  lr: 2e-6
+  eval_interval: 100
+  type: "long"
+
+trainer_Graph:
+  epoch: [ 1,13 ]
+  batch_size: 256
+
+
+file_path:
+  save_dir: "NYT25"

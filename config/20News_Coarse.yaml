@@ -1,0 +1,28 @@
+data_dir_name: "20NC"
+
+model:
+  number_classes: 7
+
+
+keywords_update:
+  extract_keywords_per_class: [ 300 ]
+  keywords_set_keep_max_num: [ 300 ]
+  IDF_n: 5
+  overwrite_conflict: False
+
+
+classifier:
+  n_epochs: 10
+  batch_size: 4
+  stop_itr: [ 2000 ,4000 ]
+  lr: 2e-6
+  eval_interval: 100
+  type: "long"
+
+
+trainer_Graph:
+  epoch: [ 4,20 ]
+  batch_size: 256
+
+file_path:
+  save_dir: "20NC_final"
