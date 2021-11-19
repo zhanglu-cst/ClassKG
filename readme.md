@@ -75,7 +75,7 @@ Open the browser to the server_ip:8888 to show visdom panel.
 3. Specify the config file name in `pipeline.py` and run the pipeline code.
 
 ### Citation
-Please cite the following paper if you find our code helpful! Thank you very much.
+Please cite the following paper if you find our code helpful! Thank you very much.  Paper link: https://aclanthology.org/2021.emnlp-main.222/
 > @inproceedings{zhang-etal-2021-weakly,
     title = "Weakly-supervised Text Classification Based on Keyword Graph",
     author = "Zhang, Lu  and
