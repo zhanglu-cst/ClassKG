@@ -1,7 +1,7 @@
-data_dir_name: "20News_x"
+task_name: "20NC"
 
 model:
-  number_classes: 5
+  number_classes: 7
 
 SSL:
   enable: True
@@ -17,7 +17,7 @@ keywords_update:
 classifier:
   n_epochs: 10
   batch_size: 4
-  stop_itr: [ 300 ,2000 ]
+  stop_itr: [ 2500 ,4000 ]
   lr: 2e-6
   eval_interval: 100
 
@@ -27,4 +27,4 @@ trainer_Graph:
   batch_size: 256
 
 file_path:
-  save_dir: "20News_x_save"
+  save_dir: "20NC_final"

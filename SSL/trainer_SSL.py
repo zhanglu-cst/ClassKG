@@ -4,9 +4,9 @@ import time
 import torch
 from torch import nn
 
-from Models.SSL_moco.dataset_SSL import SSL_Graph_Moco_Dataset
-from Models.SSL_moco.dataset_SSL import collate_fn
-from Models.SSL_moco.moco import MoCo
+from SSL.dataset_SSL import SSL_Graph_Moco_Dataset
+from SSL.dataset_SSL import collate_fn
+from SSL.moco import MoCo
 from compent.checkpoint import CheckPointer_Normal
 from compent.comm import get_rank
 from compent.metric_logger import MetricLogger

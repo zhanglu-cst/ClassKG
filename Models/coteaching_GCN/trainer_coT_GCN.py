@@ -121,6 +121,7 @@ class Trainer_GCN_CoT(Trainer_Base):
                 batch = move_to_device(batch, rank = self.rank)
                 optimizer1.zero_grad()
                 optimizer2.zero_grad()
+                # input_ids: [16,128]   label_id:[16]
                 # print('graph dim:{}'.format(batch['graphs'].ndata['nf'].shape))
                 output1 = self.model1(graphs = batch['graphs'], labels = None, return_loss = False)
                 output2 = self.model2(graphs = batch['graphs'], labels = None, return_loss = False)

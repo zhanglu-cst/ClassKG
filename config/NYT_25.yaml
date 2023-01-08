@@ -1,4 +1,4 @@
-data_dir_name: "NYT25"
+task_name: "NYT25"
 
 model:
   number_classes: 26
@@ -9,6 +9,9 @@ keywords_update:
   IDF_n: 4
   overwrite_conflict: False
 
+SSL:
+  enable: True
+  number_itr: 200000
 
 classifier:
   n_epochs: 100
@@ -16,7 +19,6 @@ classifier:
   stop_itr: [ 1000 ]
   lr: 2e-6
   eval_interval: 100
-  type: "long"
 
 trainer_Graph:
   epoch: [ 1,13 ]

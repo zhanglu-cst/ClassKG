@@ -12,7 +12,7 @@ import transformers
 import psutil
 
 
-import dgl
+# import dgl
 
 def set_seed_all(seed = None):
     if (seed is None):
@@ -22,8 +22,8 @@ def set_seed_all(seed = None):
     torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
     np.random.seed(seed)  # Numpy module.
     random.seed(seed)  # Python random module.
-    dgl.seed(seed)
-    dgl.random.seed(seed)
+    # dgl.seed(seed)
+    # dgl.random.seed(seed)
     transformers.set_seed(seed)
 
 

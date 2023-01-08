@@ -1,4 +1,9 @@
-
+#!/usr/bin/env python
+# encoding: utf-8
+# File Name: gin.py
+# Author: Jiezhong Qiu
+# Create Time: 2020/01/09 20:49
+# TODO:
 
 import numpy as np
 import torch
@@ -142,16 +147,16 @@ class GIN(nn.Module):
         """
         super(GIN, self).__init__()
 
-        self.num_layers = cfg.GNN.num_layers
-        self.learn_eps = cfg.GNN.learn_eps
+        self.num_layers = cfg.GIN.num_layers
+        self.learn_eps = cfg.GIN.learn_eps
         self.output_dim = cfg.model.number_classes
 
-        num_mlp_layers = cfg.GNN.num_mlp_layers
-        hidden_dim = cfg.GNN.hidden_dim
-        final_dropout = cfg.GNN.final_dropout
-        use_selayer = cfg.GNN.use_selayer
-        neighbor_pooling_type = cfg.GNN.neighbor_pooling_type
-        graph_pooling_type = cfg.GNN.graph_pooling_type
+        num_mlp_layers = cfg.GIN.num_mlp_layers
+        hidden_dim = cfg.GIN.hidden_dim
+        final_dropout = cfg.GIN.final_dropout
+        use_selayer = cfg.GIN.use_selayer
+        neighbor_pooling_type = cfg.GIN.neighbor_pooling_type
+        graph_pooling_type = cfg.GIN.graph_pooling_type
 
 
         # List of MLPs

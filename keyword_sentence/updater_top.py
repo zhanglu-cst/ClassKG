@@ -1,6 +1,6 @@
 import numpy
 
-
+from Models.Base.trainer_base import Trainer_Base
 from keyword_sentence.keywords import KeyWords
 from keyword_sentence.updater_base import Keywords_Updater_Base
 
@@ -14,11 +14,11 @@ class Keywords_Updater_Conwea(Keywords_Updater_Base):
 
         word_list, word_to_index = self.get_words_list(sentences)
 
-        IDF_vector = self.cal_IDF(sentences, word_list, word_to_index)
-        LI = self.cal_LI(sentences, labels, word_list, word_to_index)
-        TF = self.cal_TF_normal_with_doc_num(sentences, labels, word_list, word_to_index)
+        IDF_vector = self.cal_IDF(sentences, word_list, word_to_index)  # shape:[num_word]
+        LI = self.cal_LI(sentences, labels, word_list, word_to_index)  # shape:[num_class,num_word]
+        TF = self.cal_TF_normal_with_doc_num(sentences, labels, word_list, word_to_index)  # shape:[num_class,num_word]
 
-        indicator = TF * LI * IDF_vector
+        indicator = TF * LI * IDF_vector  # shape [num_class,num_word]
 
         self.__update_keywords_with_indicator_M1__(indicator, word_list, incremental = incremental)
 
@@ -72,14 +72,15 @@ class Keywords_Updater_TFIDF(Keywords_Updater_Base):
 
         word_list, word_to_index = self.get_words_list(sentences)
 
-        IDF_vector = self.cal_IDF(sentences, word_list, word_to_index)
-        # LI = self.cal_LI(sentences, labels, word_list, word_to_index)
-        # TF = self.cal_TF_normal_with_doc_num(sentences, labels, word_list, word_to_index)
+        IDF_vector = self.cal_IDF(sentences, word_list, word_to_index)  # shape:[num_word]
+        # LI = self.cal_LI(sentences, labels, word_list, word_to_index)  # shape:[num_class,num_word]
+        # TF = self.cal_TF_normal_with_doc_num(sentences, labels, word_list, word_to_index)  # shape:[num_class,num_word]
         TF = self.cal_TF_normal_with_words_num(sentences, labels, word_list,
-                                               word_to_index)
+                                               word_to_index)  # shape:[num_class,num_word]
 
-        # indicator = TF * IDF_vector
-        indicator = TF * numpy.power(IDF_vector, self.IDF_n)
+        # print('IDF shape:{}'.format(IDF_vector.shape))
+        # indicator = TF * IDF_vector  # shape [num_class,num_word]
+        indicator = TF * numpy.power(IDF_vector, self.IDF_n)  # shape [num_class,num_word]
 
         diff = self.__update_keywords_with_indicator_M2__(indicator, word_list, incremental = incremental)
 

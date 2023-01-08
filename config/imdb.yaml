@@ -1,4 +1,4 @@
-data_dir_name: "imdb"
+task_name: "imdb"
 
 model:
   number_classes: 2
@@ -21,7 +21,7 @@ classifier:
   stop_itr: [ 800 ]
   lr: 2e-6
   eval_interval: 50
-  type: "short"
+
 
 trainer_Graph:
   epoch: [ 4,10 ]

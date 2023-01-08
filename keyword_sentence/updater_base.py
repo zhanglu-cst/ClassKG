@@ -28,7 +28,7 @@ class Keywords_Updater_Base():
     def cal_IDF(self, sentences, word_list, word_to_index):
 
         n_sentences = len(sentences)
-        doc_frequency = numpy.zeros(len(word_list))
+        doc_frequency = numpy.zeros(len(word_list))  # shape[num_word]
 
         for one_doc in sentences:
             words = split_sentence_into_words(one_doc)
@@ -39,13 +39,14 @@ class Keywords_Updater_Base():
 
         tmp = n_sentences / doc_frequency
         IDF = numpy.log(tmp)
-
+        # print('IDF:{}'.format(IDF))
+        # shape[num_word]
         return IDF
 
     def cal_LI(self, sentences, labels, word_list, word_to_index):
 
-        doc_num_each_class_each_word = numpy.zeros((self.number_classes, len(word_list)))
-        doc_num_each_class = self.get_doc_number_each_class(labels).reshape(-1, 1)
+        doc_num_each_class_each_word = numpy.zeros((self.number_classes, len(word_list)))  # shape:[num_class, num_word]
+        doc_num_each_class = self.get_doc_number_each_class(labels).reshape(-1, 1)  # shape:[num_class,1]
 
         for class_index in range(self.number_classes):
             for one_sentence, one_label in zip(sentences, labels):
@@ -57,12 +58,13 @@ class Keywords_Updater_Base():
                         doc_num_each_class_each_word[class_index][word_index] += 1
 
         LI = doc_num_each_class_each_word / doc_num_each_class
+        # shape [num_class, num_word]
         return LI
 
     def cal_TF_normal_with_doc_num(self, sentences, labels, word_list, word_to_index):
 
-        doc_num_each_class_each_word = numpy.zeros((self.number_classes, len(word_list)))
-        doc_num_each_class = self.get_doc_number_each_class(labels).reshape(-1, 1)
+        doc_num_each_class_each_word = numpy.zeros((self.number_classes, len(word_list)))  # shape:[num_class, num_word]
+        doc_num_each_class = self.get_doc_number_each_class(labels).reshape(-1, 1)  # shape:[num_class,1]
 
         for class_index in range(self.number_classes):
             for one_sentence, one_label in zip(sentences, labels):
@@ -74,11 +76,13 @@ class Keywords_Updater_Base():
 
         TF = doc_num_each_class_each_word / doc_num_each_class
         TF = numpy.tanh(TF)
+        # shape [num_class, num_word]
         return TF
 
     def cal_TF_normal_with_words_num(self, sentences, labels, word_list, word_to_index):
-        doc_num_each_class_each_word = numpy.zeros((self.number_classes, len(word_list)))
-        words_num_each_class = self.get_words_number_each_class(sentences, labels).reshape(-1, 1)
+        # TODO:这边的labels，可能出现某个类没有的情况，debug的时候注意一下。
+        doc_num_each_class_each_word = numpy.zeros((self.number_classes, len(word_list)))  # shape:[num_class, num_word]
+        words_num_each_class = self.get_words_number_each_class(sentences, labels).reshape(-1, 1)  # shape:[num_class,1]
         words_num_each_class = words_num_each_class + 1
 
         for class_index in range(self.number_classes):
@@ -90,7 +94,8 @@ class Keywords_Updater_Base():
                         doc_num_each_class_each_word[class_index][word_index] += 1
         TF = doc_num_each_class_each_word / words_num_each_class * 1
         TF = numpy.tanh(TF)
-
+        # print('TF:{}'.format(TF))
+        # shape [num_class, num_word]
         return TF
 
     def cal_exclusivity(self, sentences, labels, word_list, word_to_index):
@@ -110,6 +115,7 @@ class Keywords_Updater_Base():
         return fenzi / fenmu
 
     def __update_keywords_with_indicator_M1__(self, indicator, word_list, incremental):
+        # indicator: shape [num_class,num_word]
         assert indicator.ndim == 2
         max_keywords_number_per_classes = self.cfg.keywords_update.extract_keywords_per_class
         score_thr = self.cfg.keywords_update.score_thr
@@ -150,6 +156,9 @@ class Keywords_Updater_Base():
         print('total keywords count:{}'.format(len(keyword_to_label)))
         for keyword in keyword_to_label:
             print('keyword:{}, labels:{}'.format(keyword, keyword_to_label[keyword]))
+        # number_origin = numpy.sum(len(class_to_keywords[class_index]) for class_index in class_to_keywords)
+        # assert number_origin == len(keyword_to_label), 'number origin:{}, number keyword_to_label:{}'.format(
+        #         number_origin, len(keyword_to_label))
 
         self.keywords.update_keywords(keyword_to_label, incremental = incremental)
 
@@ -162,7 +171,7 @@ class Keywords_Updater_Base():
             return max_keywords_number_per_classes_list[-1]
 
     def __update_keywords_with_indicator_M2__(self, indicator, word_list, incremental):
-
+        # indicator: shape [num_class,num_word]
         assert indicator.ndim == 2
         score_thr = self.cfg.keywords_update.score_thr
         max_keywords_number_per_classes = self.get_keywords_number()
@@ -193,6 +202,7 @@ class Keywords_Updater_Base():
             print('class index:{}, extract word count:{}'.format(class_index, keep))
             sort_pair = sort_pair[:keep]
             filtered_class_to_words[class_index] = sort_pair
+            # self.logger.info('class:{}, keywords:{}'.format(class_index, filtered_class_to_words[class_index]))
 
         keywords_to_label = {}
         keyword_to_score = {}

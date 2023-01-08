@@ -19,7 +19,7 @@ class Edges():
 
         # ---- edge feature  -------
         self.edge_appear_counts = []
-        self.edge_fragment_lists = []
+        self.edge_fragment_lists = []  # TODO: 累计好每个边的特征
         if (self.cfg.use_edge_cat_feature):
             self.edge_cat_lists = []
 
@@ -67,7 +67,7 @@ class Edges():
 
     @property
     def feature(self):
-        # :  edge class, edge count, edge fragment embedding
+        # 边的特征:  edge class, edge count, edge fragment embedding
         # if (self.cfg.use_edge_cat_feature):
         #     edge_soft_label = self.edge_class_to_soft_label()  # [num_edges, num_class]
         #     # return torch.cat([edge_soft_label, edge_soft_label], dim = 0)
@@ -78,8 +78,13 @@ class Edges():
         return {'count': count_feature}
 
 
-class Graph_Keywords_Dataset_SSL_Soft(DGLDataset):
+# 思路1： pretrain  然后 标注数据finetune
+# 思路2： 投票得到的弱标签训练一个分类器，     然后分类器中的高置信度结果，训练前面的graph预测
+# 思路3： 小批量标注数据finetune BERT分类器， 然后分类器高置信度结果，训练前面的graph
 
+
+class Graph_Keywords_Dataset_SSL_Soft(DGLDataset):
+    # 每次生成新的keywords和新的标注的sentence后，重新构建这个类
     def __init__(self, cfg, logger, keywords: KeyWords, sentences_vote, labels_soft, GT_labels, sentences_eval,
                  labels_eval, for_train):
 
@@ -146,9 +151,9 @@ class Graph_Keywords_Dataset_SSL_Soft(DGLDataset):
         res_sentences = []
         for index_s, (cur_sentence, cur_label, cur_GT) in enumerate(zip(sentences, labels_soft, GT_labels)):
             words, origin_idx = get_sentence_hit_keywords(cur_sentence, self.keywords, return_origin_index = True)
-            if (len(words) == 0):
+            if (len(words) == 0):  # 如果句子中没有关键词，则这个句子跳过，不生成一个子图
                 continue
-
+            #  words去重，然后统计一下每个words出现的次数，作为特征加到子图的特征中去
             set_words = list(set(words))
 
             node_IDs = []

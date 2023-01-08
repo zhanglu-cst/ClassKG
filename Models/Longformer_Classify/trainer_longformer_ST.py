@@ -43,6 +43,7 @@ class Trainer_Longformer(Trainer_Base):
         dataloader_train = self.__build_dataloader__(sentences, labels, for_train = True)
         return dataloader_train
 
+
     def train_model(self, sentences, labels, ITR, finetune_from_pretrain = True):
 
         self.logger.info('start longformer training')
@@ -186,8 +187,7 @@ class Trainer_Longformer(Trainer_Base):
                                                                 filename = 'itr_{}_ST_{}'.format(ITR,
                                                                                                  itr_self_training))
 
-        self.checkpointer.load_from_filename(model = self.model,
-                                             filename = 'itr_{}_ST_{}'.format(ITR, itr_self_training))
+        self.checkpointer.load_from_filename(model = self.model, filename = 'itr_{}_ST_{}'.format(ITR, itr_self_training))
 
         res_dict = self.evaler_on_all(self.model)
         f1_micro = res_dict['f1_micro']

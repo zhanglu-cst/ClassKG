@@ -6,9 +6,9 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from transformers import AdamW, BertForSequenceClassification
 
-from Models.BERT.dataset_for_bert import Dataset_BERT, Collect_FN
-from Models.BERT.eval_model import Eval_Model_For_BERT
 from Models.Base.trainer_base import Trainer_Base
+from Models.chinese.dataset_for_BERT import Dataset_BERT, Collect_FN
+from Models.chinese.eval_model import Eval_Model_For_BERT
 from compent.checkpoint import CheckPointer_Normal
 from compent.comm import synchronize, get_rank
 from compent.metric_logger import MetricLogger
@@ -17,18 +17,37 @@ from compent.utils import move_to_device, reduce_loss_dict, get_memory_used
 device = torch.device('cuda')
 
 
-class Trainer_BERT(Trainer_Base):
-    def __init__(self, cfg, logger, distributed, sentences_all):
-        super(Trainer_BERT, self).__init__(cfg = cfg, logger = logger, distributed = distributed)
+def build_model(number_class, cfg):
+    rank = get_rank()
+    model = BertForSequenceClassification.from_pretrained(cfg.model.model_name,
+                                                          num_labels = number_class,
+                                                          gradient_checkpointing = True,
+                                                          )
+    model.train()
+    model = model.to(device)
+    model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+    model = torch.nn.parallel.DistributedDataParallel(
+            model, device_ids = [rank], output_device = rank,  # find_unused_parameters=True
+    )
+    model.train()
+    return model
+
+
+class Trainer_HIERA(Trainer_Base):
+    def __init__(self, cfg, logger, hiera_keywords, father_road):
+        super(Trainer_HIERA, self).__init__(cfg = cfg, logger = logger, distributed = True)
         self.checkpointer = CheckPointer_Normal(cfg = cfg, logger = logger, rank = get_rank())
 
-        dataloader_eval = self.__build_dataloader__(sentences_all.test_sentence, sentences_all.test_label,
-                                                    for_train = False)
+        self.hiera_keywords = hiera_keywords
+        self.father_road = father_road
+        self.father_road_str = hiera_keywords.road_list_to_str(self.father_road)
+        test_sentence, test_labels = hiera_keywords.get_test_sentence_labels_cur_father_road(father_road)
+        dataloader_eval = self.__build_dataloader__(test_sentence, test_labels, for_train = False)
         self.evaler_on_all = Eval_Model_For_BERT(self.cfg, self.logger, distributed = True, rank = self.rank,
                                                  dataloader_eval = dataloader_eval)
 
     def __build_dataloader__(self, sentences, labels, for_train):
-        collect_fn = Collect_FN(labels is not None)
+        collect_fn = Collect_FN(self.cfg, labels is not None)
         dataset = Dataset_BERT(sentences, labels)
         sampler = DistributedSampler(dataset, shuffle = for_train)
         dataloader = DataLoader(dataset, batch_size = self.cfg.classifier.batch_size, sampler = sampler,
@@ -42,50 +61,37 @@ class Trainer_BERT(Trainer_Base):
         dataloader_train = self.__build_dataloader__(sentences, labels, for_train = True)
         return dataloader_train
 
-    def train_model(self, sentences, labels, ITR, finetune_from_pretrain = True):
-        assert finetune_from_pretrain == True
-
-        # train_sentences, test_sentences, train_labels, test_labels = train_test_split(sentences, labels,
-        #                                                                               test_size = 0.1)
-        # dataloader_pseudo_eval = self.__build_dataloader__(test_sentences, test_labels, for_train = False)
-        # self.eval_on_pseudo = Eval_Model_For_Long(self.cfg, self.logger, distributed = True, rank = self.rank,
-        #                                           dataloader_eval = dataloader_pseudo_eval)
-
+    def train_model(self, model, sentences_belong_cur_father):
+        self.model = model
+        sentences, labels = self.hiera_keywords.get_pseudo_train_sentences_cur_father_road(self.father_road,
+                                                                                           sentences_belong_cur_father)
         itr_self_training = 0
         last_global_best = 0
-        while itr_self_training < 10:
+        while itr_self_training < 5:
             dataloader_train = self.get_loader_from_origin_sentence(sentences, labels)
-            sentences, labels, global_best = self.__do_train__(dataloader = dataloader_train, ITR = ITR,
+            sentences, labels, global_best = self.__do_train__(dataloader = dataloader_train,
                                                                itr_self_training = itr_self_training)
             itr_self_training += 1
             if (global_best < last_global_best):
                 break
             else:
                 last_global_best = global_best
-        return sentences, labels
 
-    def __do_train__(self, dataloader, ITR, itr_self_training):
+        children = self.hiera_keywords.get_children_cur_road(self.father_road)
+        sentences_each_child = [[] for i in range(len(children))]
+        for one_sentence, one_label in zip(sentences, labels):
+            sentences_each_child[one_label].append(one_sentence)
+        return sentences_each_child
+
+    def __do_train__(self, dataloader, itr_self_training):
         self.logger.info('start training')
 
         self.logger.info('finetune from pretrain, load pretrain model')
-        self.model = BertForSequenceClassification.from_pretrained('bert-base-uncased',
-                                                                   num_labels = self.cfg.model.number_classes,
-                                                                   gradient_checkpointing = True,
-                                                                   )
-        self.model.train()
-        self.model = self.model.to(device)
-        if (self.distributed):
-            model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self.model)
-            self.model = torch.nn.parallel.DistributedDataParallel(
-                    model, device_ids = [self.rank], output_device = self.rank,  # find_unused_parameters=True
-            )
-
-        self.model.train()
 
         meters = MetricLogger(delimiter = "  ")
         end = time.time()
 
-        stop_itr = self.get_stop_itr(ITR)
+        # stop_itr = self.get_stop_itr(ITR)
 
         global_best = 0
 
@@ -94,6 +100,7 @@ class Trainer_BERT(Trainer_Base):
         total_epoch = self.cfg.classifier.n_epochs
         total_itr = 0
         train_over_flag = False
+        stop_itr = 500
         for epoch in range(total_epoch):
             self.logger.info('total epoch:{}, cur epoch:{}'.format(total_epoch, epoch))
             if (self.distributed):
@@ -146,39 +153,41 @@ class Trainer_BERT(Trainer_Base):
                     )
                     self.logger.plot_record(value = GPU_memory, win_name = 'GPU')
                     self.logger.plot_record(value = meters.loss.median,
-                                            win_name = 'classifier loss,itr:{},ST:{}'.format(ITR, itr_self_training),
+                                            win_name = 'loss,road:{},ST:{}'.format(self.father_road_str,
+                                                                                   itr_self_training),
                                             X_value = total_itr)
                     self.logger.plot_record(value = memory, win_name = 'memory')
-                    self.logger.plot_record(value = optimizer.param_groups[0]["lr"], win_name = 'lr')
+                    # self.logger.plot_record(value = optimizer.param_groups[0]["lr"], win_name = 'lr')
 
-                if (total_itr == stop_itr):
-                    train_over_flag = True
-                    break
+                    if (total_itr == stop_itr):
+                        train_over_flag = True
+                        break
 
-                if (total_itr % self.cfg.classifier.eval_interval == 0):
-                    synchronize()
-                    res_dict = self.evaler_on_all(self.model)
-                    f1_micro = res_dict['f1_micro']
-                    f1_macro = res_dict['f1_macro']
-                    acc = res_dict['acc']
-                    self.logger.plot_record(f1_micro,
-                                            win_name = 'cls on all micro itr_{},ST:{}'.format(ITR, itr_self_training),
-                                            X_value = total_itr)
-                    self.logger.plot_record(f1_macro,
-                                            win_name = 'cls on all macro itr_{},ST:{}'.format(ITR, itr_self_training),
-                                            X_value = total_itr)
-                    self.logger.plot_record(acc, win_name = 'cls res ACC itr_{},ST:{}'.format(ITR, itr_self_training),
-                                            X_value = total_itr)
-                    if (acc > global_best):
-                        global_best = acc
-                        self.checkpointer.save_to_checkpoint_file_with_name(model = self.model,
-                                                                            filename = 'itr_{}_{}'.format(ITR,
-                                                                                                          itr_self_training))
-
-                    synchronize()
-
-            if (train_over_flag):
-                break
+                    if (total_itr % self.cfg.classifier.eval_interval == 0):
+                        synchronize()
+                        res_dict = self.evaler_on_all(self.model)
+                        f1_micro = res_dict['f1_micro']
+                        f1_macro = res_dict['f1_macro']
+                        acc = res_dict['acc']
+                        self.logger.plot_record(f1_micro,
+                                                win_name = 'eval micro road:{},ST:{}'.format(self.father_road_str,
+                                                                                             itr_self_training),
+                                                X_value = total_itr)
+                        self.logger.plot_record(f1_macro,
+                                                win_name = 'eval macro road:{},ST:{}'.format(self.father_road_str,
+                                                                                             itr_self_training),
+                                                X_value = total_itr)
+                        self.logger.plot_record(acc, win_name = 'eval acc road:{},ST:{}'.format(self.father_road_str,
+                                                                                                itr_self_training),
+                                                X_value = total_itr)
+                        if (acc > global_best):
+                            global_best = acc
+                            self.checkpointer.save_to_checkpoint_file_with_name(model = self.model,
+                                                                                filename = 'road_{}'.format(
+                                                                                        self.father_road_str))
+                            synchronize()
+                        if (train_over_flag):
+                            break
 
         synchronize()
 
@@ -190,26 +199,30 @@ class Trainer_BERT(Trainer_Base):
         if (acc > global_best):
             global_best = acc
             self.checkpointer.save_to_checkpoint_file_with_name(model = self.model,
-                                                                filename = 'itr_{}_{}'.format(ITR, itr_self_training))
-        self.logger.plot_record(f1_micro, win_name = 'cls on all micro itr_{},ST:{}'.format(ITR, itr_self_training),
+                                                                filename = 'road_{}'.format(self.father_road_str))
+        self.logger.plot_record(f1_micro, win_name = 'eval micro road:{},ST:{}'.format(self.father_road_str,
+                                                                                       itr_self_training),
                                 X_value = total_itr)
-        self.logger.plot_record(f1_macro, win_name = 'cls on all macro itr_{},ST:{}'.format(ITR, itr_self_training),
+        self.logger.plot_record(f1_macro, win_name = 'eval macro road:{},ST:{}'.format(self.father_road_str,
+                                                                                       itr_self_training),
                                 X_value = total_itr)
-        self.logger.plot_record(acc, win_name = 'cls res ACC itr_{},ST:{}'.format(ITR, itr_self_training),
+        self.logger.plot_record(acc, win_name = 'eval acc road:{},ST:{}'.format(self.father_road_str,
+                                                                                itr_self_training),
                                 X_value = total_itr)
         synchronize()
 
-        self.checkpointer.load_from_filename(model = self.model, filename = 'itr_{}_{}'.format(ITR, itr_self_training))
+        self.checkpointer.load_from_filename(model = self.model,
+                                             filename = 'road_{}'.format(self.father_road_str))
         self.logger.visdom_text(text = 'start evaling last', win_name = 'state')
         res_dict = self.evaler_on_all(self.model)
         f1_micro = res_dict['f1_micro']
         f1_macro = res_dict['f1_macro']
         acc = res_dict['acc']
-        self.logger.plot_record(f1_micro, win_name = 'classifier eval on all f1_micro',
+        self.logger.plot_record(f1_micro, win_name = 'eval last micro,road_{}'.format(self.father_road_str),
                                 )
-        self.logger.plot_record(f1_macro, win_name = 'classifier eval on all f1_macro',
+        self.logger.plot_record(f1_macro, win_name = 'eval last macro,road_{}'.format(self.father_road_str),
                                 )
-        self.logger.plot_record(acc, win_name = 'classifier eval on all ACC')
+        self.logger.plot_record(acc, win_name = 'eval last acc,road_{}'.format(self.father_road_str))
 
         return res_dict['sentences'], res_dict['preds'], global_best
 

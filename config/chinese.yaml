@@ -1,16 +1,16 @@
-data_dir_name: "AGNews_x"
+task_name: "agnews"
 
 model:
-  number_classes: 4
+  number_classes: 78
 
 
 SSL:
-  enable: True
+  enable: False
   number_itr: 100000
 
 keywords_update:
-  extract_keywords_per_class: [ 1000 ]
-  keywords_set_keep_max_num: [ 1000 ]
+  extract_keywords_per_class: [ 50 ]
+  keywords_set_keep_max_num: [ 50 ]
   IDF_n: 4
   overwrite_conflict: True
 
@@ -21,7 +21,6 @@ classifier:
   stop_itr: [ 500 ]
   lr: 2e-6
   eval_interval: 50
-  type: "short"
 
 
 

@@ -1,11 +1,11 @@
 import torch
 from torch.utils.data import Dataset
-from transformers import LongformerTokenizer
+from transformers import BertTokenizer
 
 
-class Dataset_Long(Dataset):
+class Dataset_BERT(Dataset):
     def __init__(self, sentences, labels_hard = None, GT_labels = None):
-        super(Dataset_Long, self).__init__()
+        super(Dataset_BERT, self).__init__()
         self.sentences = sentences
         self.labels_hard = labels_hard
         self.GT_labels = GT_labels
@@ -23,9 +23,9 @@ class Dataset_Long(Dataset):
 
 
 class Collect_FN():
-    def __init__(self, with_label_hard, with_GT_labels = False):
+    def __init__(self, cfg, with_label_hard, with_GT_labels = False):
         super(Collect_FN, self).__init__()
-        self.tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
+        self.tokenizer = BertTokenizer.from_pretrained(cfg.model.model_name)
         self.with_label = with_label_hard
         self.with_GT_labels = with_GT_labels
 
@@ -38,14 +38,14 @@ class Collect_FN():
         else:
             sentences = batchs
         encoding = self.tokenizer(sentences, return_tensors = 'pt', padding = True, truncation = True)
-        input_ids = encoding['input_ids']
-        attention_mask = encoding['attention_mask']
-        ans = {'input_ids': input_ids, 'attention_mask': attention_mask}
+        # input_ids = encoding['input_ids']
+        # attention_mask = encoding['attention_mask']
+        # ans = {'input_ids': input_ids, 'attention_mask': attention_mask}
         if (self.with_label):
             labels = torch.tensor(labels).long()
-            ans['labels'] = labels
+            encoding['labels'] = labels
         if (self.with_GT_labels):
             GT_labels = torch.tensor(GT_labels).long()
-            ans['GT_labels'] = GT_labels
-        ans['sentences'] = sentences
-        return ans
+            encoding['GT_labels'] = GT_labels
+        encoding['sentences'] = sentences
+        return encoding

@@ -1,4 +1,4 @@
-data_dir_name: "agnews"
+task_name: "agnews"
 
 model:
   number_classes: 4
@@ -21,7 +21,6 @@ classifier:
   stop_itr: [ 500 ]
   lr: 2e-6
   eval_interval: 50
-  type: "short"
 
 
 

@@ -10,7 +10,7 @@ from Models.Base.trainer_base import Trainer_Base
 from Models.Graph.eval_graph import Eval_Model_For_Graph, Eval_Model_On_Labeling_Quality
 from Models.Graph_SSL_Soft.GIN_model import UnsupervisedGIN
 from Models.Graph_SSL_Soft.dataset_graph_SSL import Graph_Keywords_Dataset_SSL_Soft, Collate_FN
-from Models.SSL.trainer_SSL import Trainer_SSL
+from SSL_DA.trainer_DA import Trainer_DA
 from compent.checkpoint import CheckPointer_Normal
 from compent.comm import is_main_process, synchronize, get_rank
 from compent.metric_logger import MetricLogger
@@ -40,9 +40,9 @@ class Trainer_GCN(Trainer_Base):
 
     def pretrain_model(self, graph, evaler, evaler_labeling_quality, model):
         if (self.cfg.SSL.enable):
-            trainer = Trainer_SSL(cfg = self.cfg, logger = self.logger, keywords = self.keywords,
-                                  graph = graph, evaler = evaler, evaler_labeling_quality = evaler_labeling_quality,
-                                  model = model)
+            trainer = Trainer_DA(cfg = self.cfg, logger = self.logger, keywords = self.keywords,
+                                 graph = graph, evaler = evaler, evaler_labeling_quality = evaler_labeling_quality,
+                                 model = model)
             trainer.do_train()
 
     def train_model(self, sentences, soft_labels, hard_labels, ITR, GT_labels = None):

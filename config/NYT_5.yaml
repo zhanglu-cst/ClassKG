@@ -1,4 +1,4 @@
-data_dir_name: "NYT5"
+task_name: "NYT5"
 
 model:
   number_classes: 5
@@ -10,6 +10,9 @@ keywords_update:
   overwrite_conflict: False
   seed_word_score: 20
 
+SSL:
+  enable: True
+  number_itr: 100000
 
 classifier:
   n_epochs: 100
@@ -17,7 +20,7 @@ classifier:
   stop_itr: [ 200,1000 ]
   lr: 2e-6
   eval_interval: 100
-  type: "long"
+
 
 trainer_Graph:
   epoch: [ 0, 20 ]

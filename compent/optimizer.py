@@ -4,6 +4,7 @@ from bisect import bisect_right
 import torch
 
 
+# FIXME ideally this would be achieved with a CombinedLRScheduler,
 # separating MultiStepLR with WarmupLR
 # but the current LRScheduler design doesn't allow it
 class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):

@@ -4,7 +4,7 @@ import os
 from PROJECT_ROOT import ROOT_DIR
 from compent.utils import make_dirs
 
-root_dir_origin = r'/xxx/dataset'
+root_dir_origin = r'/remote-home/XXX/dataset'
 
 cur_task = 'imdb'
 

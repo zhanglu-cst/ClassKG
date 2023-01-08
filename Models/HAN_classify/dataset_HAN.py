@@ -80,3 +80,6 @@ def collate_fn(batchs):
     label = torch.tensor(label).long()
     return text_processed, label, sentence
 
+# if __name__ == '__main__':
+#     test = MyDataset(data_path = "../data/test.csv", dict_path = "../data/glove.6B.50d.txt")
+#     print(test.__getitem__(index = 1)[0].shape)

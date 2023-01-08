@@ -7,7 +7,7 @@ import numpy
 from PROJECT_ROOT import ROOT_DIR
 from compent.utils import make_dirs
 
-path_origin = r'/XXX/dataset/nyt/fine/'
+path_origin = r'/remote-home/XXX/dataset/nyt/fine/'
 cur_task = 'NYT25'
 
 path_keyword = os.path.join(path_origin, 'seedwords.json')

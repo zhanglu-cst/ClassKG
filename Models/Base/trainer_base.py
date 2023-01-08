@@ -78,7 +78,7 @@ class Trainer_Base():
         return ans_sentences, ans_labels
 
     def upsample_balance_with_one_extra(self, sentences, labels, GT_labels):
-
+        # TODO: need be re upsample each epoch, (shuffle)
         sample_number_per_class = self.get_classes_count(labels)
         self.logger.info('berfor balance, sample number each class:{}'.format(sample_number_per_class))
         self.logger.visdom_text('label:' + str(sample_number_per_class), win_name = 'sample_number_per_class',
@@ -110,6 +110,7 @@ class Trainer_Base():
         return ans_sentences, ans_labels, ans_GT
 
     def upsample_balance_with_GT_soft(self, sentences, hard_labels, GT_labels, soft_labels):
+        # TODO: need be re upsample each epoch, (shuffle)
         sample_number_per_class = self.get_classes_count(hard_labels)
         self.logger.info('berfor balance, sample number each class:{}'.format(sample_number_per_class))
         self.logger.visdom_text('label:' + str(sample_number_per_class), win_name = 'sample_number_per_class',
