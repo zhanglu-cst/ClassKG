@@ -144,7 +144,7 @@ class Trainer_CoTeaching(Trainer_Base):
                 labels = batch['labels']
                 GT_labels = batch['GT_labels']
 
-                # TODO: change here
+
                 loss1, loss2, pure_rate_graph, pure_rate_cls = self.coteaching_loss(pred_graph, pred_classifier,
                                                                                     labels = labels,
                                                                                     GT_labels = GT_labels,

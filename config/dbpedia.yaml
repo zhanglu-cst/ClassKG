@@ -1,4 +1,4 @@
-task_name: "dbpedia"
+data_dir_name: "dbpedia"
 
 model:
   number_classes: 14
@@ -13,7 +13,6 @@ keywords_update:
   keywords_set_keep_max_num: [ 300 ]
   IDF_n: 4
   overwrite_conflict: True
-#  seed_word_score: 100
 
 
 classifier:
@@ -22,7 +21,7 @@ classifier:
   stop_itr: [ 1000 ]
   lr: 2e-6
   eval_interval: 50
-
+  type: "short"
 
 
 trainer_Graph:

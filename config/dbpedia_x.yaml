@@ -1,16 +1,12 @@
-data_dir_name: "amazon"
+data_dir_name: "DBpedia_x"
 
 model:
-  number_classes: 2
+  number_classes: 14
 
-
-SSL:
-  enable: True
-  number_itr: 100000
 
 keywords_update:
-  extract_keywords_per_class: [ 3000 ]
-  keywords_set_keep_max_num: [ 3000 ]
+  extract_keywords_per_class: [ 300 ]
+  keywords_set_keep_max_num: [ 300 ]
   IDF_n: 4
   overwrite_conflict: True
 
@@ -20,7 +16,7 @@ classifier:
   batch_size: 8
   stop_itr: [ 1000 ]
   lr: 2e-6
-  eval_interval: 100
+  eval_interval: 50
   type: "short"
 
 
@@ -30,4 +26,4 @@ trainer_Graph:
 
 
 file_path:
-  save_dir: "amazon"
+  save_dir: "dbpedia"

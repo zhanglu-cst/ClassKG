@@ -12,7 +12,7 @@ from Models.Graph_SSL.GAT_model import GAT_Classifier
 from Models.Graph_SSL.GCN_model import GCN_Classifier
 from Models.Graph_SSL.GIN_model import GIN
 from Models.Graph_SSL.dataset_graph_SSL import Graph_Keywords_Dataset_SSL, collate_fn
-from SSL_DA.trainer_DA import Trainer_DA
+from Models.SSL.trainer_SSL import Trainer_SSL
 from compent.checkpoint import CheckPointer_Normal
 from compent.comm import is_main_process, synchronize, get_rank
 from compent.metric_logger import MetricLogger
@@ -39,10 +39,10 @@ class Trainer_GCN(Trainer_Base):
 
     def pretrain_model(self, graph, model):
         if (self.cfg.SSL.enable):
-            trainer = Trainer_DA(cfg = self.cfg, logger = self.logger, keywords = self.keywords,
-                                 graph = graph, evaler_labeling_quality = self.eval_labeling_quality,
-                                 eval_on_origin = self.eval_on_origin_data,
-                                 model = model)
+            trainer = Trainer_SSL(cfg = self.cfg, logger = self.logger, keywords = self.keywords,
+                                  graph = graph, evaler_labeling_quality = self.eval_labeling_quality,
+                                  eval_on_origin = self.eval_on_origin_data,
+                                  model = model)
             trainer.do_train()
 
     def train_model(self, sentences, vote_labels, ITR, GT_labels = None):
@@ -116,25 +116,6 @@ class Trainer_GCN(Trainer_Base):
         # ------------------------- #
         synchronize()
 
-        res_on_origin = self.eval_on_origin_data(self.model)
-        # res_labeling = self.eval_labeling_quality(self.model)
-        if (is_main_process()):
-            # f1_micro_labeling = res_labeling['f1_micro']
-            # f1_macro_labeling = res_labeling['f1_macro']
-            # self.logger.plot_record(f1_micro_labeling, win_name = 'labeling quality micro,itr:{}'.format(ITR),
-            #                         X_value = 0)
-            # self.logger.plot_record(f1_macro_labeling, win_name = 'labeling quality macro,itr:{}'.format(ITR),
-            #                         X_value = 0)
-            f1_micro_origin = res_on_origin['f1_micro']
-            f1_macro_origin = res_on_origin['f1_macro']
-            self.logger.plot_record(f1_micro_origin,
-                                    win_name = 'GIN LQ for comp micro,itr:{}'.format(ITR),
-                                    X_value = 0)
-            self.logger.plot_record(f1_macro_origin,
-                                    win_name = 'GIN LQ for comp macro,itr:{}'.format(ITR),
-                                    X_value = 0)
-        synchronize()
-        # ------------------------- #
 
         total_epoch = self.get_total_epoch(ITR)
 
@@ -151,7 +132,7 @@ class Trainer_GCN(Trainer_Base):
 
                 # print(batch)
                 optimizer.zero_grad()
-                # input_ids: [16,128]   label_id:[16]
+
                 out = self.model(graphs = batch['graphs'])
                 loss = loss_func(out, batch['labels'])
                 loss_dict_reduced = reduce_loss_dict({'loss_all': loss})
@@ -197,63 +178,19 @@ class Trainer_GCN(Trainer_Base):
                                             X_value = total_itr)
                     self.logger.plot_record(value = GPU_memory, win_name = 'GPU')
                     self.logger.plot_record(value = memory, win_name = 'memory')
-                    self.logger.plot_record(value = optimizer.param_groups[0]["lr"], win_name = 'lr')
-
-                if (iteration + 0) % 100 == 0:
-                    self.logger.info('start eval...'.format(self.rank))
-                    synchronize()
-
-                    # res_labeling = self.eval_labeling_quality(self.model)
-                    res_on_origin = self.eval_on_origin_data(self.model)
-                    if (is_main_process()):
-                        # f1_micro_labeling = res_labeling['f1_micro']
-                        # f1_macro_labeling = res_labeling['f1_macro']
-                        # self.logger.plot_record(f1_micro_labeling,
-                        #                         win_name = 'labeling quality micro,itr:{}'.format(ITR),
-                        #                         X_value = total_itr)
-                        # self.logger.plot_record(f1_macro_labeling,
-                        #                         win_name = 'labeling quality macro,itr:{}'.format(ITR),
-                        #                         X_value = total_itr)
-                        f1_micro_origin = res_on_origin['f1_micro']
-                        f1_macro_origin = res_on_origin['f1_macro']
-                        self.logger.plot_record(f1_micro_origin,
-                                                win_name = 'GIN LQ for comp micro,itr:{}'.format(ITR),
-                                                X_value = total_itr)
-                        self.logger.plot_record(f1_macro_origin,
-                                                win_name = 'GIN LQ for comp macro,itr:{}'.format(ITR),
-                                                X_value = total_itr)
-                    synchronize()
+                    # self.logger.plot_record(value = optimizer.param_groups[0]["lr"], win_name = 'lr')
 
             synchronize()
 
         # ------------------------------------- #
 
         res_labeling = self.eval_labeling_quality(self.model)
-        res_on_origin = self.eval_on_origin_data(self.model)
+        # res_on_origin = self.eval_on_origin_data(self.model)
         if (is_main_process()):
-            LQ_for_longfomer_micro = res_labeling['f1_micro']
-            LQ_for_longfomer_macro = res_labeling['f1_macro']
-            self.logger.plot_record(value = LQ_for_longfomer_micro,
-                                    win_name = 'LQ_for_longfomer_micro', X_value = ITR)
-            self.logger.plot_record(value = LQ_for_longfomer_macro,
-                                    win_name = 'LQ_for_longfomer_macro', X_value = ITR)
             labeled_sentences = res_labeling['sentences']
             labeled_pred = res_labeling['pred']
             GT_labels = res_labeling['GT_labels']
 
-            f1_micro_origin = res_on_origin['f1_micro']
-            f1_macro_origin = res_on_origin['f1_macro']
-            self.logger.plot_record(f1_micro_origin,
-                                    win_name = 'GIN_last_micro comp', X_value = ITR)
-            self.logger.plot_record(f1_macro_origin,
-                                    win_name = 'GIN_last_macro comp', X_value = ITR)
-
-            self.logger.plot_record(f1_micro_origin,
-                                    win_name = 'GIN LQ for comp micro,itr:{}'.format(ITR),
-                                    X_value = total_itr)
-            self.logger.plot_record(f1_macro_origin,
-                                    win_name = 'GIN LQ for comp macro,itr:{}'.format(ITR),
-                                    X_value = total_itr)
             self.checkpointer.save_to_checkpoint_file_with_name(self.model, filename = 'GIN_itr_{}'.format(ITR))
             return {'sentences': labeled_sentences, 'pred_labels': labeled_pred, 'GT_labels': GT_labels}
         else:

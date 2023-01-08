@@ -14,13 +14,13 @@ msg = dgl.function.copy_u('h', 'm')
 
 
 def reduce(nodes):
-    """对所有相邻节点特征hu取平均值，并用它覆盖原始节点特征。"""
+
     accum = torch.mean(nodes.mailbox['m'], 1)
     return {'h': accum}
 
 
 class NodeApplyModule(nn.Module):
-    """使用ReLU(Whv+b)更新节点的特征hv."""
+
 
     def __init__(self, in_feats, out_feats, activation):
         super(NodeApplyModule, self).__init__()
@@ -40,7 +40,7 @@ class GCN(nn.Module):
         self.apply_mod = NodeApplyModule(in_feats, out_feats, activation)
 
     def forward(self, g, feature):
-        # 初始化h节点特征
+
         g.ndata['h'] = feature
         g.update_all(msg, reduce, self.apply_mod)
 
@@ -50,7 +50,7 @@ class GCN(nn.Module):
 class GCN_Classifier(nn.Module):
     def __init__(self, cfg, input_dim = 89):
         super(GCN_Classifier, self).__init__()
-        hidden_dim = cfg.GIN.hidden_dim
+        hidden_dim = cfg.GNN.hidden_dim
         n_classes = cfg.model.number_classes
 
         self.layers = nn.ModuleList([
@@ -67,7 +67,6 @@ class GCN_Classifier(nn.Module):
         # self.softmax = nn.Softmax(dim = 1)
 
     def forward(self, graphs):
-        # 对于无向图，in_degree与out_degree相同。
         # h = graphs.in_degrees().view(-1, 1).float()
         h = graphs.ndata['nf']
         for layer_index, conv in enumerate(self.layers):

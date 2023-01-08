@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# encoding: utf-8
-# File Name: gin.py
-# Author: Jiezhong Qiu
-# Create Time: 2020/01/09 20:49
-# TODO:
 
 import numpy as np
 import torch

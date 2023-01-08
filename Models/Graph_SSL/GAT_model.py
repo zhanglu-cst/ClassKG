@@ -7,7 +7,7 @@ from torch import nn
 class GAT_Classifier(nn.Module):
     def __init__(self, cfg, input_dim = 89):
         super(GAT_Classifier, self).__init__()
-        hidden_dim = cfg.GIN.hidden_dim
+        hidden_dim = cfg.GNN.hidden_dim
         n_classes = cfg.model.number_classes
 
         self.layers = nn.ModuleList([
@@ -26,7 +26,7 @@ class GAT_Classifier(nn.Module):
         # self.softmax = nn.Softmax(dim = 1)
 
     def forward(self, graphs):
-        # 对于无向图，in_degree与out_degree相同。
+
         # h = graphs.in_degrees().view(-1, 1).float()
         h = graphs.ndata['nf']
         for layer_index, conv in enumerate(self.layers):

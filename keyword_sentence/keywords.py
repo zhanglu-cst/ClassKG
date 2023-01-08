@@ -17,8 +17,8 @@ from keyword_sentence.sentence import Sentence_ALL
 class KeyWords():
     def __init__(self, cfg, logger):
         self.cfg = cfg
-        taskname = cfg.task_name
-        self.data_dir = os.path.join(ROOT_DIR, 'data', 'processed', taskname)
+        data_dir_name = cfg.data_dir_name
+        self.data_dir = os.path.join(ROOT_DIR, 'data', 'processed', data_dir_name)
         self.logger = logger
         self.number_classes = cfg.model.number_classes
         self.rank = get_rank()
@@ -29,7 +29,9 @@ class KeyWords():
             # key to int
             for str_label in label_to_keywords:
                 int_label = int(str_label)
-                self.label_to_keywords[int_label] = label_to_keywords[str_label]
+                keywords_cur_label = label_to_keywords[str_label]
+                keywords_cur_label = [item.lower() for item in keywords_cur_label]
+                self.label_to_keywords[int_label] = keywords_cur_label
 
         self.keywords_to_label = {}
         self.keywords_to_score = {}
@@ -80,8 +82,7 @@ class KeyWords():
         for i in range(len(self.index_to_keywords)):
             keywords.append(self.index_to_keywords[i])
 
-        # -----------word vector特征--------------
-        # # // 需要解决一些keywords的embedding的获取问题，例如 www  http 这种
+        # -----------word vector feature--------------
         # path_word_to_emb = os.path.join(self.data_dir, 'word_to_emb.json')
         # with open(path_word_to_emb, 'r') as f:
         #     all_word_to_embedding = json.load(f)
@@ -96,23 +97,22 @@ class KeyWords():
         #         self.logger.info('cnt_has_no_embedding_words:{}'.format(cnt_has_no_embedding_words))
         #     keywords_embedding.append(emb_cur_word)
 
-        # -----------word vector特征--------------
 
-        # -----------word class特征--------------
+        # -----------word class feature--------------
         keywords_class_index = []
         for word in keywords:
             keywords_class_index.append(self.keywords_to_label[word])
         label_one_hot = class_index_to_one_hot(keywords_class_index, self.cfg.model.number_classes)
         # [length, num_classes]
-        # -----------word class特征--------------
+        # -----------word class feature--------------
 
-        # -----------word index特征--------------
+        # -----------word index feature--------------
         keywords_indexs = []
         for word in keywords:
             keywords_indexs.append(self.keywords_to_index[word])
         index_one_hot = class_index_to_one_hot(keywords_indexs, len(keywords_indexs))
         # [length, length]
-        # -----------word index特征--------------
+        # -----------word index feature--------------
 
         # -----------score---------------------
         # keywords_scores = []
@@ -120,7 +120,7 @@ class KeyWords():
         #     keywords_scores.append(self.keywords_to_score[word])
         #     # [length]
 
-        # TODO: need to update, add other feature
+        # add other feature
 
         label_one_hot = torch.tensor(label_one_hot).float()
         index_one_hot = torch.tensor(index_one_hot).float()
@@ -241,10 +241,10 @@ class KeyWords():
         self.logger.info('rank:{}, keywords f1_macro:{}'.format(self.rank, f1_macro))
 
         coverage = len(y_pred) / len(sentence_all.unlabeled_sentence)
-        self.logger.plot_record(coverage, win_name = 'keywords cover')
-        self.logger.plot_record(self.__len__(), win_name = 'keywords number')
-        self.logger.plot_record(f1_micro, win_name = 'keywords f1_micro')
-        self.logger.plot_record(f1_macro, win_name = 'keywords f1_macro')
+        # self.logger.plot_record(coverage, win_name = 'keywords cover')
+        # self.logger.plot_record(self.__len__(), win_name = 'keywords number')
+        # self.logger.plot_record(f1_micro, win_name = 'keywords f1_micro')
+        # self.logger.plot_record(f1_macro, win_name = 'keywords f1_macro')
         return {'f1_micro': f1_micro, 'f1_macro': f1_macro, 'coverage': coverage}
 
         # self.logger.visdom_text(text = classification_report(y_true = y_true, y_pred = y_pred,),win_name = 'keywords cls report',append = True)

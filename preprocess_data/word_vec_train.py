@@ -47,18 +47,3 @@ with open(target_path, 'w') as f:
 
 print('1.50' in word_to_emb)
 
-# print(model.similarity(''))
-
-
-#
-# raw_sentences = ["the quick brown fox jumps over the lazy dogs", "yoyoyo you go home now to sleep"]
-#
-# # 切分词汇
-# sentences = [s.split() for s in raw_sentences]
-# print(sentences)
-# # 构建模型
-# model = word2vec.Word2Vec(sentences, min_count = 1, )
-#
-# # 进行相关性比较
-# print(model.similarity('dogs', 'you'))
-# print(model['the'].shape)

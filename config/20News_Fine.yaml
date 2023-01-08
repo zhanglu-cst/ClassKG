@@ -1,12 +1,9 @@
-task_name: "20NF"
+data_dir_name: "20NF"
 
 model:
   number_classes: 20
 
 
-SSL:
-  enable: True
-  number_itr: 400000
 
 keywords_update:
   extract_keywords_per_class: [ 100,150 ]
@@ -21,6 +18,7 @@ classifier:
   stop_itr: [ 1000 ,4000 ]
   lr: 2e-6
   eval_interval: 100
+  type: "long"
 
 
 trainer_Graph:

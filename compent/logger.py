@@ -1,4 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import logging
 import os
 import sys
@@ -7,9 +6,8 @@ import time
 from torch.utils.tensorboard import SummaryWriter
 
 from compent.utils import make_dirs
+from compent.visdom_show import My_Visdom
 
-
-# from compent.visdom_show import My_Visdom
 
 
 class Logger():
@@ -37,9 +35,9 @@ class Logger():
             logger.addHandler(fh)
 
         self.logger = logger
-        # if (self.rank == 0):
-        #     self.visdom = My_Visdom(env_name = name, port = visdom_port)
-        #     self.visdom.close_all_curves()
+        if (self.rank == 0):
+            self.visdom = My_Visdom(env_name = name, port = visdom_port)
+            self.visdom.close_all_curves()
         self.inner_values = {}
 
     def set_value(self, key, value):
@@ -58,30 +56,25 @@ class Logger():
             self.logger.info(info)
 
     def plot_record(self, value, win_name, X_value = None):
-        self.info('win_name:{}, value:{}'.format(win_name, value))
-        # if (self.rank == 0):
-        #     self.visdom.plot_record(value, win_name, X_value)
+        if (self.rank == 0):
+            self.visdom.plot_record(value, win_name, X_value)
 
     def visdom_text(self, text, win_name, append = True):
-        pass
-        # text = str(text) + '\n\n'
-        # if (self.rank == 0):
-        #     self.visdom.text(text, win_name, append = append)
+        text = str(text) + '\n\n'
+        if (self.rank == 0):
+            self.visdom.text(text, win_name, append = append)
 
     def visdom_table(self, table, win_name):
-        pass
-        # if (self.rank == 0):
-        #     self.visdom.table(table, win_name)
+        if (self.rank == 0):
+            self.visdom.table(table, win_name)
 
     def clear_record(self, win_name):
-        pass
-        # if (self.rank == 0):
-        #     self.visdom.clear_record(win_name)
+        if (self.rank == 0):
+            self.visdom.clear_record(win_name)
 
     def close_all_curves(self):
-        pass
-        # if (self.rank == 0):
-        #     self.visdom.close_all_curves()
+        if (self.rank == 0):
+            self.visdom.close_all_curves()
 
 
 class Logger_Board():

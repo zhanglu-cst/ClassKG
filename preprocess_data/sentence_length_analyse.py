@@ -3,9 +3,9 @@ import json
 import numpy
 from transformers import BertTokenizer
 
-taskname = 'dbpedia'
+taskname = '20News_x'
 
-target_unlabel_path = '/remote-home/XXX/EMNLP/data/processed/' + taskname + '/unlabeled.json'
+target_unlabel_path = '/remote-home/xxx/xxx/data/processed/' + taskname + '/unlabeled.json'
 
 with open(target_unlabel_path, 'r') as f:
     unlabeled = json.load(f)

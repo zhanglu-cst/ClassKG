@@ -71,6 +71,6 @@ def get_max_lengths(sentences):
 
 
 if __name__ == "__main__":
-    word, sent = get_max_lengths(r'/data/zhanglu/EMNLP/data/processed/20NF/unlabeled.json')
+    word, sent = get_max_lengths(r'/data/XXX/XXX/data/processed/20NF/unlabeled.json')
     print(word)
     print(sent)

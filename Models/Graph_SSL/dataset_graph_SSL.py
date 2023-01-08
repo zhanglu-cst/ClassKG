@@ -19,7 +19,7 @@ class Edges():
 
         # ---- edge feature  -------
         self.edge_appear_counts = []
-        self.edge_fragment_lists = []  # TODO: 累计好每个边的特征
+        self.edge_fragment_lists = []
         if (self.cfg.use_edge_cat_feature):
             self.edge_cat_lists = []
 
@@ -67,7 +67,7 @@ class Edges():
 
     @property
     def feature(self):
-        # 边的特征:  edge class, edge count, edge fragment embedding
+        # :  edge class, edge count, edge fragment embedding
         # if (self.cfg.use_edge_cat_feature):
         #     edge_soft_label = self.edge_class_to_soft_label()  # [num_edges, num_class]
         #     # return torch.cat([edge_soft_label, edge_soft_label], dim = 0)
@@ -78,13 +78,9 @@ class Edges():
         return {'count': count_feature}
 
 
-# 思路1： pretrain  然后 标注数据finetune
-# 思路2： 投票得到的弱标签训练一个分类器，     然后分类器中的高置信度结果，训练前面的graph预测
-# 思路3： 小批量标注数据finetune BERT分类器， 然后分类器高置信度结果，训练前面的graph
-
 
 class Graph_Keywords_Dataset_SSL(DGLDataset):
-    # 每次生成新的keywords和新的标注的sentence后，重新构建这个类
+
     def __init__(self, cfg, logger, keywords: KeyWords, sentences_vote, labels_vote, GT_labels):
 
         self.keywords = keywords
@@ -115,7 +111,6 @@ class Graph_Keywords_Dataset_SSL(DGLDataset):
         pass
 
     def build_large_graph(self, sentences, labels):
-        # 根据 自己的变量keywords 和 自己的变量sentences 进行构建
 
         self.logger.info('build graphs, total number keywords:{}'.format(len(self.keywords)))
         # self.logger.info(str(self.keywords))
@@ -144,9 +139,6 @@ class Graph_Keywords_Dataset_SSL(DGLDataset):
         Large_G.edata['ef'] = self.edges.feature['count']
         # draw(Large_G)
 
-        # with open('/data/zhanglu/EMNLP/code_test/g.pkl', 'wb') as f:
-        #     pickle.dump(Large_G, f)
-
         self.Large_G = Large_G
 
 
@@ -157,7 +149,6 @@ class Graph_Keywords_Dataset_SSL(DGLDataset):
         words, origin_idx = get_sentence_hit_keywords(cur_sentence, self.keywords, return_origin_index = True)
         assert len(words) > 0
 
-        #  words去重，然后统计一下每个words出现的次数，作为特征加到子图的特征中去
         set_words = list(set(words))
 
         node_IDs = []

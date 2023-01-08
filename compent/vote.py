@@ -56,6 +56,7 @@ class Vote_All_Unlabeled():
         res_GT = []
         hit_counts = []
         for sentence, cur_GT in zip(unlabeled_sentences, GT_label):
+            sentence = sentence.lower()
             if (self.need_static_hit_words):
                 label, count_hit_words = self.voter(sentence, need_no_confuse = self.need_no_confuse,
                                                     return_hit_counts = True)

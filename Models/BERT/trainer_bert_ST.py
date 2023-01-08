@@ -21,8 +21,15 @@ class Trainer_BERT(Trainer_Base):
     def __init__(self, cfg, logger, distributed, sentences_all):
         super(Trainer_BERT, self).__init__(cfg = cfg, logger = logger, distributed = distributed)
         self.checkpointer = CheckPointer_Normal(cfg = cfg, logger = logger, rank = get_rank())
-
-        dataloader_eval = self.__build_dataloader__(sentences_all.test_sentence, sentences_all.test_label,
+        if (sentences_all.has_test_data):
+            eval_sentence = sentences_all.test_sentence
+            eval_labels = sentences_all.test_label
+            self.logger.visdom_text(text = 'eval on test', win_name = 'eval')
+        else:
+            eval_sentence = sentences_all.unlabeled_sentence
+            eval_labels = sentences_all.unlabeled_GT_label
+            self.logger.visdom_text(text = 'eval on all data', win_name = 'eval')
+        dataloader_eval = self.__build_dataloader__(eval_sentence, eval_labels,
                                                     for_train = False)
         self.evaler_on_all = Eval_Model_For_BERT(self.cfg, self.logger, distributed = True, rank = self.rank,
                                                  dataloader_eval = dataloader_eval)

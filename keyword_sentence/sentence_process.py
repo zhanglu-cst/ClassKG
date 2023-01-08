@@ -11,8 +11,6 @@ def split_sentence_into_words(sentence: str):
     return words
 
 
-
-
 # seps = ['.', ',', '!', '?', ':', '/', '@', '&', '*', '$', '#', '(', ')', '<', '>', '[', ']', '{', '}']
 # def split_sentence_into_words_old(sentence: str):
 #     sentence = sentence.lower()
